@@ -1,16 +1,16 @@
 #!/usr/bin/python3
 import cmd
 import json
-
 from models.engine.file_storage import FileStorage
 from models.base_model import BaseModel
+
 
 class HBNBCommand(cmd.Cmd):
     """
     console for the airbnb project
     """
     prompt = "(hbnb) "
-    valid_class_names = ["BaseModel", "OtherModel"]
+    valid_class_names = ["BaseModel", "User"]
 
     def do_quit(self, arg):
         """
@@ -48,10 +48,15 @@ class HBNBCommand(cmd.Cmd):
         """
         if arg is None:
             print(" ** class name missing ** ")
-        else:
-            new_instance = BaseModel()
-            new_instance.save()
-            print(new_instance.id)
+            return
+
+        if arg not in HBNBCommand.valid_class_names:
+            print("** class doesn't exist **")
+            return
+
+        new_instance = BaseModel()
+        new_instance.save()
+        print(new_instance.id)
 
     def do_show(self, arg):
         """
@@ -75,7 +80,7 @@ class HBNBCommand(cmd.Cmd):
             else:
                 print("** no instance found **")
 
-    def do_destroy(self,args):
+    def do_destroy(self, args):
         """
         deletes an instance based on the class name and id
         """
