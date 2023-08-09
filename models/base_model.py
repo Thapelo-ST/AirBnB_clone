@@ -11,7 +11,6 @@ class BaseModel:
     base model class to initialise all methods and variables needed in the project
     """
 
-
     def __init__(self, *args, **kwargs):
         """
         init method
