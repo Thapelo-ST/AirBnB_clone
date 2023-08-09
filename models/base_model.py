@@ -11,6 +11,15 @@ class BaseModel:
     base model class to initialise all methods and variables needed in the project
     """
 
+    def save(self):
+        """
+        updates the time the instance was created at or modified
+        """
+        from models.__init__ import storage
+        self.updated_at = datetime.now()
+        storage.new(self)
+        storage.save()
+
     def __init__(self, *args, **kwargs):
         """
         init method
@@ -26,17 +35,13 @@ class BaseModel:
             from models.__init__ import storage
             storage.new(self)
         else:
+            from models.__init__ import storage
             self.id = str(uuid.uuid4())
             self.created_at = datetime.now()
             self.updated_at = self.created_at
+            storage.save()
 
-    def save(self):
-        """
-        updates the time the instance was created at or modified
-        """
-        self.updated_at = datetime.now()
-        from models.__init__ import storage
-        storage.save()
+
 
     def to_dict(self):
         """
