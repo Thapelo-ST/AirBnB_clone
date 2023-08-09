@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 import cmd
+import json
+
 from models.engine.file_storage import FileStorage
 from models.base_model import BaseModel
 
@@ -50,8 +52,6 @@ class HBNBCommand(cmd.Cmd):
             new_instance = BaseModel()
             new_instance.save()
             print(new_instance.id)
-            print(" ---- ")
-            print(new_instance)
 
     def do_show(self, arg):
         """
@@ -75,23 +75,32 @@ class HBNBCommand(cmd.Cmd):
             else:
                 print("** no instance found **")
 
-    def do_destroy(self, name, id):
+    def do_destroy(self,args):
         """
         deletes an instance based on the class name and id
         """
-        if not name:
+        arguments = args.split()
+        if not arguments:
             print("** class name missing **")
-        elif name not in HBNBCommand.valid_class_names:
+            return
+
+        name = arguments[0]
+        if name not in HBNBCommand.valid_class_names:
             print("** class doesn't exist **")
-        elif not id:
+            return
+
+        if len(arguments) < 2:
             print("** instance id missing **")
+            return
+
+        id = arguments[1]
+        key = "{}.{}".format(name, id)
+        all_objects = FileStorage.all(self)
+        if key in all_objects:
+            del all_objects[key]
+            FileStorage.save(self)
         else:
-            key = "{}.{}".format(name, id)
-            all_objs = FileStorage.all(self)
-            if key in all_objs:
-                del all_objs[key]
-            else:
-                print("** no instance found **")
+            print("** no instance found **")
 
     def do_all(self, arg):
         """
@@ -99,35 +108,57 @@ class HBNBCommand(cmd.Cmd):
         """
         if not arg or arg in HBNBCommand.valid_class_names:
             all_objs = FileStorage.all(self)
+            list_of_instances = []
             for key, obj in all_objs.items():
-                print(obj)
+                if key.split('.')[0] == arg:
+                    list_of_instances.append(str(obj))
+            print(json.dumps(list_of_instances))
         else:
-            print(" ** class doesn't exist ** ")
+            print("** class doesn't exist **")
 
-    def do_update(self, name, id, attr_name, attr_value):
+    def do_update(self, args):
         """
         updates an instance based on class id and adding or updating attribute
         """
-        if not name:
-            print(" ** class name missing ** ")
-        elif name not in HBNBCommand.valid_class_names:
-            print(" ** class doesn't exist ** ")
-        elif not id:
-            print(" ** instance id missing ** ")
-        elif not attr_name:
-            print(" ** attribute name missing ** ")
-        elif not attr_value:
-            print(" ** value missing ** ")
-        elif attr_name == "id" or attr_name == "created_at" or attr_name == "updated_at":
-            print(" ** attribute cannot be updated ** ")
-        else:
-            key = "{}.{}".format(name, id)
-            all_objs = FileStorage.all(self)
-            if key in all_objs:
-                setattr(all_objs[key], attr_name, attr_value)
-                all_objs[key].save()
-            else:
-                print("** no instance found **")
+        arguments = args.split()
+        if not arguments:
+            print("** class name missing **")
+            return
+
+        name = arguments[0]
+        if name not in HBNBCommand.valid_class_names:
+            print("** class doesn't exist **")
+            return
+
+        if len(arguments) < 2:
+            print("** instance id missing **")
+            return
+
+        id = arguments[1]
+        key = "{}.{}".format(name, id)
+        all_objects = FileStorage.all(self)
+        if key not in all_objects:
+            print("** no instance found **")
+            return
+
+        if len(arguments) < 4:
+            print("** attribute missing **")
+            return
+
+        attribute_name = arguments[2]
+        if len(arguments) < 4:
+            print("** value missing **")
+            return
+
+        attribute_value = " ".join(arguments[3:])
+
+        if attribute_value.startswith('"') and attribute_value.endswith('"'):
+            attribute_value = attribute_value[1:-1]
+
+        obj = all_objects[key]
+        setattr(obj, attribute_name, attribute_value)
+
+        obj.save()
 
 
 if __name__ == '__main__':
