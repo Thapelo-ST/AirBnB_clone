@@ -4,6 +4,11 @@ import json
 from models.engine.file_storage import FileStorage
 from models.base_model import BaseModel
 from models.user import User
+from models.state import State
+from models.city import City
+from models.amenity import Amenity
+from models.place import Place
+from models.review import Review
 
 
 class HBNBCommand(cmd.Cmd):
@@ -11,25 +16,27 @@ class HBNBCommand(cmd.Cmd):
     console for the airbnb project
     """
     prompt = "(hbnb) "
-    valid_class_names = ["BaseModel", "User"]
+    valid_class_names = [
+        "BaseModel",
+        "User",
+        "Place",
+        "State",
+        "City",
+        "Amenity",
+        "Review"
+    ]
 
     def do_quit(self, arg):
-        """
-        exit the program
-        """
+        """Exit the program"""
         return True
 
     def do_EOF(self, arg):
-        """
-        exit the program with Ctrl+D
-        """
+        """Exit the program with Ctrl+D and or Ctrl+Z"""
         print()
         return True
 
     def do_help(self, arg):
-        """
-        Display help message
-        """
+        """Display help message"""
         if arg:
             doc = getattr(self, "do_" + arg).__doc__
             if doc:
@@ -38,15 +45,11 @@ class HBNBCommand(cmd.Cmd):
             super().do_help(arg)
 
     def emptyline(self):
-        """
-        do nothing in cases of an empty line pass
-        """
+        """Do nothing in cases of an empty line pass"""
         return True
 
     def do_create(self, arg):
-        """
-        creates a new instance of a model
-        """
+        """Creates a new instance of a model"""
         if arg is None:
             print(" ** class name missing ** ")
             return
@@ -59,6 +62,16 @@ class HBNBCommand(cmd.Cmd):
             new_instance = User()
         elif arg == "BaseModel":
             new_instance = BaseModel()
+        elif arg == "State":
+            new_instance = State()
+        elif arg == "City":
+            new_instance = City()
+        elif arg == "Amenity":
+            new_instance = Amenity()
+        elif arg == "Place":
+            new_instance = Place()
+        elif arg == "Review":
+            new_instance = Review()
         else:
             print("** class doesn't exist **")
             return
@@ -67,10 +80,7 @@ class HBNBCommand(cmd.Cmd):
         print(new_instance.id)
 
     def do_show(self, arg):
-        """
-        prints string representation of an instance
-        based on the class name and id
-        """
+        """Prints string representation of an instance based on the class name and id"""
         args = arg.split()
         if len(args) < 1:
             print("** class name missing **")
@@ -89,9 +99,7 @@ class HBNBCommand(cmd.Cmd):
                 print("** no instance found **")
 
     def do_destroy(self, arg):
-        """
-        deletes an instance based on the class name and id
-        """
+        """Deletes an instance based on the class name and id"""
         arguments = arg.split()
         if not arguments:
             print("** class name missing **")
@@ -116,9 +124,7 @@ class HBNBCommand(cmd.Cmd):
             print("** no instance found **")
 
     def do_all(self, arg):
-        """
-        Prints all string representation of all instances based or not on the class name
-        """
+        """Prints all string representation of all instances based or not on the class name"""
         if not arg or arg in self.valid_class_names:
             all_objs = FileStorage.all(self)
             list_of_instances = []
@@ -130,9 +136,7 @@ class HBNBCommand(cmd.Cmd):
             print("** class doesn't exist **")
 
     def do_update(self, arg):
-        """
-        updates an instance based on class id and adding or updating attribute
-        """
+        """Updates an instance based on class id and adding or updating attribute"""
         arguments = arg.split()
         if not arguments:
             print("** class name missing **")
