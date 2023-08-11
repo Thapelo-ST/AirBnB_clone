@@ -1,7 +1,4 @@
 #!/usr/bin/python3
-"""
-
-"""
 import json
 from models.base_model import BaseModel
 from models.user import User
@@ -9,27 +6,27 @@ from models.user import User
 
 class FileStorage:
     """
-    a class to handle serialization and deserialization of instances
+    serializes instances to a json file and deserializes json file to instances
     """
     __file_path = "file.json"
-    __objects = {"BaseModel": BaseModel, "User": User}
+    __objects = {}
 
     def all(self):
         """
-        returns the dictionary __objects
+        returns dictionary __objects
         """
         return FileStorage.__objects
 
     def new(self, obj):
         """
-        sets in objects the object with key
+        sets in __objects in the obj with key
         """
         key = "{}.{}".format(obj.__class__.__name__, obj.id)
-        FileStorage.__objects[key] = obj
+        self.__objects[key] = obj
 
     def save(self):
         """
-        serializes objects to the JSON file
+        serialized __objects to json file
         """
         serialized_objects = {key: obj.to_dict() for key, obj in FileStorage.__objects.items()}
         with open(FileStorage.__file_path, "w") as file:
@@ -37,16 +34,15 @@ class FileStorage:
 
     def reload(self):
         """
-        Deserializes the JSON file
+        deserializes json file to __objects with key
         """
         try:
-            with open(FileStorage.__file_path, "r") as file:
+            with open(self.__file_path, "r") as file:
                 loaded_objects = json.load(file)
                 for key, value in loaded_objects.items():
                     class_name, object_id = key.split(".")
                     class_obj = globals()[class_name]
                     object_instance = class_obj(**value)
-                    FileStorage.__objects[key] = object_instance
+                    self.__objects[key] = object_instance
         except FileNotFoundError:
             pass
-
