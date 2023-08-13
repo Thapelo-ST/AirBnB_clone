@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 import cmd
 import json
+
+# from models import storage
 from models.engine.file_storage import FileStorage
 from models.base_model import BaseModel
 from models.user import User
@@ -122,10 +124,69 @@ class HBNBCommand(cmd.Cmd):
             FileStorage.save(self)
         else:
             print("** no instance found **")
+# ============================================================
+
+    def onecmd(self, line):
+        """Modified onecmd to handle custom commands"""
+        cmd, *args = line.split('.')
+
+        if cmd in self.valid_class_names and args and args[0] == 'all()':
+            self.do_all(cmd)
+        elif cmd in self.valid_class_names and args and args[0] == 'count()':
+            self.do_count(cmd)
+        else:
+            parts = line.split('.')
+            if len(parts) == 2:
+                class_name, func_with_args = parts
+                func_parts = func_with_args.split('(')
+                if len(func_parts) == 2:
+                    func_name, args = func_parts
+                    if args.endswith(')'):
+                        arg_parts = args[:-1].split(',')
+                        if func_name == "update":
+                            if len(arg_parts) >= 3:
+                                obj_id = arg_parts[0].strip().strip('"')
+                                attr_name = arg_parts[1].strip().strip('"')
+                                attr_value = arg_parts[2].strip().strip('"')
+                                self.do_update(f"{class_name} {obj_id} {attr_name} {attr_value}")
+                            else:
+                                print("** Missing arguments for update **")
+                        elif func_name in ['show', 'destroy']:
+                            obj_id = args[:-1].strip().strip('""')  # Remove the trailing ')'
+                            if func_name == 'show':
+                                self.do_show(f"{class_name} {obj_id}")
+                            elif func_name == 'destroy':
+                                self.do_destroy(f"{class_name} {obj_id}")
+                        else:
+                            return super().onecmd(line)
+                    else:
+                        return super().onecmd(line)
+                else:
+                    return super().onecmd(line)
+            else:
+                return super().onecmd(line)
+
+    def do_count(self, arg):
+        """Counts the number of instances of a class"""
+        class_name = arg.split()[0]
+
+        if class_name in self.valid_class_names:
+            all_objs = FileStorage.all(self)
+            count = sum(1 for key in all_objs if key.startswith(class_name + "."))
+            print(count)
+        else:
+            print("** class doesn't exist **")
+
+    # ============================================================
 
     def do_all(self, arg):
         """Prints all string representation of all instances based or not on the class name"""
-        if not arg or arg in self.valid_class_names:
+        args = arg.split()
+        if len(args) == 0:
+            all_objs = FileStorage.all(self)
+            for obj_key in all_objs:
+                print(all_objs[obj_key])
+        elif not arg or arg in self.valid_class_names:
             all_objs = FileStorage.all(self)
             list_of_instances = []
             for key, obj in all_objs.items():
